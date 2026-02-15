@@ -45,7 +45,7 @@
         async function fetchPost() {
             try {
                 // 백엔드 서버에 "id번 일기 줘!" 요청
-                const response = await fetch(`http://localhost:3000/api/timeline/${postId}`);
+                const response = await fetch(`https://my-leave-of-absence-diary.onrender.com/api/timeline/${postId}`);
                 const post = await response.json();
 
                 const container = document.getElementById('post-container');

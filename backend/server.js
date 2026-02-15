@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
-
+ㅊ
 app.use(cors());
 
 // 다은님의 실제 휴학 타임라인 데이터

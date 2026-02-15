@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000/api/timeline";
+const API_URL = "https://my-leave-of-absence-diary.onrender.com/api/timeline";
 const list = document.getElementById('timeline-list');
 
 async function getTimelineData() {
