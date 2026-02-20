@@ -1,9 +1,138 @@
+// 1. 숨겨둔 .env 파일의 비밀번호를 읽어오기 위한 마법의 주문
+require('dotenv').config(); 
+
 const express = require('express');
+const Post = require('./models/Timeline');
 const cors = require('cors');
+// 2. 몽고DB와 연결해주는 번역기 불러오기
+const mongoose = require('mongoose'); 
+
+const bcrypt = require('bcrypt'); // 비밀번호 암호화 도구
+const User = require('./models/User'); // 아까 만든 유저 설계도
+const jwt = require('jsonwebtoken');
+const Timeline = require('./models/Timeline');
+
 const app = express();
+app.use(express.json()); // 프론트엔드에서 오는 JSON 데이터를 읽을 수 있게 해주는 마법의 코드
 const port = process.env.PORT || 3000;
 
 app.use(cors());
+// 3. 🌟 나중에 로그인할 때 아이디/비밀번호(JSON 형식)를 제대로 읽기 위해 꼭 필요해요!
+app.use(express.json()); 
+
+// 4. 🌟 몽고DB(우리의 금고)와 실제로 연결하는 코드
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('✅ 몽고DB 금고에 무사히 연결되었습니다!'))
+  .catch((err) => console.log('❌ 몽고DB 연결 실패:', err));
+
+// ==========================================
+// 🌟 회원가입 API (POST 요청)
+// ==========================================
+app.post('/api/signup', async (req, res) => {
+    try {
+        // 1. 유저가 보낸 아이디와 비밀번호 꺼내기
+        const { username, password } = req.body;
+
+        // 2. 이미 존재하는 아이디인지 금고에서 찾아보기
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+            return res.status(400).json({ message: "이미 사용 중인 아이디입니다." });
+        }
+
+        // 3. 비밀번호 암호화 (숫자 10은 '10번 꼬아서 복잡하게 만들어라'는 뜻!)
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // 4. 금고에 넣을 새로운 유저 정보 포장하기
+        const newUser = new User({
+            username: username,
+            password: hashedPassword
+        });
+
+        // 5. 금고에 진짜로 저장!
+        await newUser.save();
+
+        // 6. 성공했다고 답변 보내기
+        res.status(201).json({ message: "회원가입 성공! 환영합니다 🎉" });
+        console.log(`새로운 유저 가입 완료: ${username}`);
+        
+    } catch (error) {
+        console.error("회원가입 에러:", error);
+        res.status(500).json({ message: "서버 오류가 발생했습니다." });
+    }
+});
+
+// ==========================================
+// 🌟 로그인 API (POST 요청)
+// ==========================================
+app.post('/api/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        // 1. 금고에서 아이디 찾기
+        const user = await User.findOne({ username });
+        if (!user) {
+            return res.status(400).json({ message: "아이디를 찾을 수 없습니다." });
+        }
+
+        // 2. 비밀번호가 맞는지 비교하기 (bcrypt가 외계어 암호를 해독해서 비교해 줍니다!)
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "비밀번호가 틀렸습니다." });
+        }
+
+        // 3. 비밀번호가 맞다면 입장권(JWT) 발급하기! (유효기간: 1시간)
+        const token = jwt.sign(
+            { userId: user._id }, 
+            process.env.JWT_SECRET, 
+            { expiresIn: '1h' }
+        );
+
+        // 4. 유저에게 성공 메시지와 입장권 보내주기
+        res.json({ message: "로그인 성공!", token: token });
+        console.log(`유저 로그인 성공: ${username}`);
+
+    } catch (error) {
+        console.error("로그인 에러:", error);
+        res.status(500).json({ message: "서버 오류가 발생했습니다." });
+    }
+});
+
+// ==========================================
+// 🛡️ 토큰 검사원 (인증 미들웨어)
+// ==========================================
+const authenticateToken = (req, res, next) => {
+    // 1. 방문자가 제시한 입장권(토큰) 확인하기
+    const authHeader = req.headers['authorization'];
+    // 보통 토큰은 "Bearer eyJhbG..." 형태로 오기 때문에 뒤의 진짜 토큰만 쏙 빼냅니다.
+    const token = authHeader && authHeader.split(' ')[1];
+
+    // 2. 토큰이 아예 없으면 쫓아내기
+    if (!token) {
+        return res.status(401).json({ message: "입장권(토큰)이 없습니다. 로그인이 필요합니다." });
+    }
+
+    // 3. 토큰이 진짜인지(위조되지 않았는지) 우리가 아까 만든 비밀 도장으로 확인하기
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).json({ message: "입장권이 가짜이거나 유효기간이 지났습니다." });
+        }
+        
+        // 4. 무사히 통과했다면 유저 정보를 다음 단계로 넘겨주기
+        req.user = user;
+        next(); // "통과!" 하고 문을 열어주는 역할
+    });
+};
+
+// ==========================================
+// 💎 VIP 전용 구역 테스트 (토큰이 있어야만 접근 가능)
+// ==========================================
+// 주소 중간에 'authenticateToken' 검사원이 서 있는 거 보이시죠?
+app.get('/api/vip-only', authenticateToken, (req, res) => {
+    res.json({ 
+        message: "환영합니다! VIP 구역에 무사히 입장하셨습니다 💎",
+        userId: req.user.userId 
+    });
+});
 
 // 다은님의 실제 휴학 타임라인 데이터
 const timelineData = [
@@ -107,31 +236,85 @@ const timelineData = [
     }
 ];
 
+// ==========================================
+// 📦 데이터 한 번에 금고로 이사하기 (초기 세팅용)
+// ==========================================
+app.get('/api/init-timeline', async (req, res) => {
+    try {
+        // 1. 혹시 금고에 옛날 데이터가 남아있다면 싹 비워줍니다. (중복 방지)
+        await Timeline.deleteMany({});
+
+        // 2. timelineData 배열에 있던 14개의 데이터를 금고에 한 번에 집어넣습니다!
+        await Timeline.insertMany(timelineData);
+
+        // 3. 성공 메시지 보내기
+        res.send("✅ 14개의 일기 데이터가 몽고DB 금고로 무사히 이사 완료되었습니다! 🎉");
+        console.log("데이터 초기화 완료!");
+    } catch (error) {
+        console.error("데이터 이사 에러:", error);
+        res.status(500).send("이사 중 에러가 발생했습니다.");
+    }
+});
+
 app.get('/', (req, res) => {
     res.send('다은님의 백엔드 서버가 잘 돌아가고 있어요!');
 });
 
-app.get('/api/timeline', (req, res) => {
-    res.json(timelineData);
+// 전체 일기 목록을 DB에서 가져오기
+app.get('/api/timeline', async (req, res) => {
+  try {
+    // Post 모델을 사용해 DB에 있는 모든 데이터를 찾음
+    const posts = await Post.find(); 
+    res.json(posts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "데이터를 불러오는 데 실패했습니다." });
+  }
 });
-// ... 기존 /api/timeline 코드 아래에 이어서 작성 ...
 
-// 🌟 추가할 내용: 특정 ID의 일기만 가져오는 기능
-app.get('/api/timeline/:id', (req, res) => {
-    // URL에서 보낸 숫자(id)를 읽어옵니다.
-    const postId = parseInt(req.params.id);
-    
-    // 데이터 중에서 그 숫자에 맞는 일기를 찾습니다.
-    const post = timelineData.find(item => item.id === postId);
-    
-    if (post) {
-        res.json(post); // 찾으면 그 일기만 보내줌
+// 특정 ID의 일기만 DB에서 가져오기
+app.get('/api/timeline/:id', async (req, res) => {
+  try {
+    const postId = req.params.id;
+    // URL에서 넘겨받은 id로 DB에서 해당 일기를 찾음 (MongoDB의 _id 기준)
+    const post = await Post.findById(postId);
+
+    if (Timeline) {
+      res.json(post); // 찾으면 그 일기만 보내줌
     } else {
-        res.status(404).json({ error: "일기를 찾을 수 없습니다." });
+      res.status(404).json({ error: "일기를 찾을 수 없습니다." });
     }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "서버 오류가 발생했습니다." });
+  }
 });
 
-// app.listen(...) 부분은 그대로 두시면 됩니다.
+// 새로운 일기 쓰기 (POST) - 프론트엔드에서 보낸 데이터를 DB에 저장합니다.
+app.post('/api/timeline', async (req, res) => {
+  try {
+    // 1. 프론트엔드에서 쓴 제목, 날짜, 설명, 내용을 꺼냅니다. (req.body에 담겨서 와요!)
+    const { title, date, desc, content } = req.body;
+
+    // 2. DB(MongoDB) 모델 규격에 맞춰 새로운 덩어리를 만듭니다.
+    const newTimeline = new Timeline({
+      title: title,
+      date: date,
+      desc: desc,
+      content: content
+    });
+
+    // 3. DB에 진짜로 저장! (await를 써서 저장이 끝날 때까지 기다려줍니다.)
+    await newTimeline.save();
+    
+    // 4. 잘 저장되었다고 프론트엔드에 성공 답장을 보냅니다.
+    res.status(201).json({ message: "일기가 성공적으로 기록되었습니다!", data: newPost });
+    
+  } catch (error) {
+    console.error("저장 중 에러 발생:", error);
+    res.status(500).json({ error: "일기 저장에 실패했습니다." });
+  }
+});
 
 app.listen(port, () => {
     console.log(`서버 실행 완료: http://localhost:${port}`);
