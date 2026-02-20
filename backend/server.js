@@ -16,9 +16,10 @@ const app = express();
 app.use(express.json()); // 프론트엔드에서 오는 JSON 데이터를 읽을 수 있게 해주는 마법의 코드
 const port = process.env.PORT || 3000;
 
-app.use(cors());
-// 3. 🌟 나중에 로그인할 때 아이디/비밀번호(JSON 형식)를 제대로 읽기 위해 꼭 필요해요!
-app.use(express.json()); 
+app.use(cors({
+    origin: 'https://tjdekdms0215.github.io', // 다은님의 웹사이트 주소!
+    credentials: true // 나중에 로그인 유지할 때 필요해요
+}));
 
 // 4. 🌟 몽고DB(우리의 금고)와 실제로 연결하는 코드
 mongoose.connect(process.env.MONGO_URI)
@@ -279,7 +280,7 @@ app.get('/api/timeline/:id', async (req, res) => {
     // URL에서 넘겨받은 id로 DB에서 해당 일기를 찾음 (MongoDB의 _id 기준)
     const post = await Post.findById(postId);
 
-    if (Timeline) {
+    if (post) {
       res.json(post); // 찾으면 그 일기만 보내줌
     } else {
       res.status(404).json({ error: "일기를 찾을 수 없습니다." });
@@ -308,7 +309,7 @@ app.post('/api/timeline', async (req, res) => {
     await newTimeline.save();
     
     // 4. 잘 저장되었다고 프론트엔드에 성공 답장을 보냅니다.
-    res.status(201).json({ message: "일기가 성공적으로 기록되었습니다!", data: newPost });
+    res.status(201).json({ message: "일기가 성공적으로 기록되었습니다!", data: newTimeline});
     
   } catch (error) {
     console.error("저장 중 에러 발생:", error);
