@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>휴학 일기 쓰기 📝</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; padding: 50px; }
+        .write-container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h2 { text-align: center; color: #333; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #45a049; }
+        .back-link { display: block; text-align: center; margin-top: 15px; color: #888; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <div class="write-container">
+        <h2>📝 나의 휴학 기록 쓰기</h2>
+        
+        <div class="input-group">
+            <label>제목</label>
+            <input type="text" id="title" placeholder="예: 첫 유럽여행과 복학 준비" />
+        </div>
+        <div class="input-group">
+            <label>날짜</label>
+            <input type="text" id="date" placeholder="예: 2026.02" />
+        </div>
+        <div class="input-group">
+            <label>짧은 설명</label>
+            <input type="text" id="desc" placeholder="예: 우당탕탕 포르투갈 후기" />
+        </div>
+        <div class="input-group">
+            <label>상세 내용</label>
+            <textarea id="content" placeholder="이곳에 자세한 일기를 적어주세요!" rows="6"></textarea>
+        </div>
+        
+        <button onclick="savePost()">🚀 일기 저장하기</button>
+
+        <a href="index.html" class="back-link">메인 화면으로 돌아가기</a>
+    </div>
+
+    <script>
+        async function savePost() {
+            // 1. 칸에 적힌 글씨들을 자바스크립트가 읽어옵니다.
+            const title = document.getElementById('title').value;
+            const date = document.getElementById('date').value;
+            const desc = document.getElementById('desc').value;
+            const content = document.getElementById('content').value;
+
+            // 빈칸이 있으면 저장 안 되게 막아주기!
+            if(!title || !date) {
+                alert("제목과 날짜는 꼭 적어주세요!");
+                return;
+            }
+
+            try {
+                // 🚨 [매우 중요] 아래 주소를 다은님의 렌더(Render) 백엔드 주소로 싹 바꿔주세요!!! 🚨
+                // 예시: const url = 'https://my-backend-abcd.onrender.com/api/timeline';
+                const url = 'https://여기에-다은님-렌더-주소를-넣어주세요/api/timeline'; 
+
+                // fetch: 택배기사님을 불러서 백엔드로 데이터를 보냅니다.
+                const response = await fetch(url, {
+                    method: 'POST', // "새로운 데이터를 저장해 줘!" 라는 뜻
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, date, desc, content }) // 글씨들을 예쁘게 포장
+                });
+
+                if (response.ok) {
+                    alert("일기가 성공적으로 DB에 저장되었습니다! 🎉");
+                    window.location.href = 'index.html'; // 저장 성공하면 메인 화면으로 자동 이동!
+                } else {
+                    alert("저장에 실패했어요. 서버를 확인해 보세요.");
+                }
+            } catch (error) {
+                console.error("에러 발생:", error);
+                alert("서버와 연결할 수 없습니다. 렌더 주소를 다시 확인해 주세요!");
+            }
+        }
+    </script>
+
+</body>
+</html>
