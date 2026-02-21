@@ -64,6 +64,7 @@
                 if (response.ok) {
                     // 🌟 핵심! 백엔드가 발급해준 '입장권(token)'을 브라우저의 창고(localStorage)에 보관합니다.
                     localStorage.setItem('token', data.token);
+                    localStorage.setItem('role', data.role);//백엔드가 보내준 등급(role)도 창고에 저장합니다.
                     alert("로그인 성공! 환영합니다 🎉");
                     window.location.href = 'index.html'; // 메인 화면으로 자동 이동
                 } else {

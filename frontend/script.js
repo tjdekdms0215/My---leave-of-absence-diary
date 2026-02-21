@@ -34,28 +34,34 @@ async function getTimelineData() {
 getTimelineData();
 
 // ==========================================
-// 🔐 로그인 상태 확인 및 버튼 변경 로직
+// 🔐 로그인 상태 및 권한(Role) 확인
 // ==========================================
 function checkLoginStatus() {
-    // 1. 창고(localStorage)에서 입장권(token) 꺼내보기
+    // 1. 창고에서 입장권(token)과 등급표(role) 꺼내기
     const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role'); 
     
-    // 2. HTML에서 만들어둔 버튼들 찾아오기
     const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const writeBtn = document.getElementById('write-btn');
 
-    // 3. 입장권이 있다면? (로그인 상태)
     if (token) {
-        if (loginBtn) loginBtn.style.display = 'none'; // 로그인 버튼 숨기기
-        if (logoutBtn) logoutBtn.style.display = 'inline-block'; // 로그아웃 버튼 보여주기
-        if (writeBtn) writeBtn.style.display = 'inline-block'; // 글쓰기 버튼 보여주기
-    } 
-    // 4. 입장권이 없다면? (로그아웃 상태)
-    else {
-        if (loginBtn) loginBtn.style.display = 'inline-block'; // 로그인 버튼 보여주기
-        if (logoutBtn) logoutBtn.style.display = 'none'; // 로그아웃 버튼 숨기기
-        if (writeBtn) writeBtn.style.display = 'none'; // 글쓰기 버튼 숨기기
+        // [로그인 상태]
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (logoutBtn) logoutBtn.style.display = 'inline-block';
+        
+        // 🌟 핵심: 등급표가 'admin'(관리자)일 때만 글쓰기 버튼 보여주기!
+        if (role === 'admin') {
+            if (writeBtn) writeBtn.style.display = 'inline-block';
+        } else {
+            // 일반 회원(user)이면 글쓰기 버튼 숨기기
+            if (writeBtn) writeBtn.style.display = 'none';
+        }
+    } else {
+        // [로그아웃 상태]
+        if (loginBtn) loginBtn.style.display = 'inline-block';
+        if (logoutBtn) logoutBtn.style.display = 'none';
+        if (writeBtn) writeBtn.style.display = 'none';
     }
 }
 
@@ -63,15 +69,13 @@ function checkLoginStatus() {
 // 🚪 로그아웃 기능
 // ==========================================
 function logout() {
-    // 1. 창고에서 입장권(token) 불태워버리기(삭제)
+    // 로그아웃 할 때는 입장권과 등급표를 모두 버려야 합니다!
     localStorage.removeItem('token');
+    localStorage.removeItem('role'); 
     
-    // 2. 알림창 띄우기
     alert("로그아웃 되었습니다. 안녕히 가세요! 👋");
-    
-    // 3. 화면 새로고침해서 변경된 버튼 상태 반영하기
     window.location.reload(); 
 }
 
-// 웹페이지가 열릴 때 가장 먼저 'checkLoginStatus' 함수를 실행하라는 뜻!
+// 스크립트가 로드되자마자 상태 확인!
 checkLoginStatus();
