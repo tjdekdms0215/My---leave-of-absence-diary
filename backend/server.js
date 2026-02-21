@@ -210,6 +210,24 @@ app.get('/api/timeline/:id', async (req, res) => {
   }
 });
 
+// ==========================================
+// 📖 특정 일기 '하나만' 불러오기 API (상세 페이지용)
+// ==========================================
+app.get('/api/timeline/:id', async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const post = await Timeline.findById(postId); // 몽고DB에서 해당 ID의 일기 찾기!
+        
+        if (!post) {
+            return res.status(404).json({ message: "일기를 찾을 수 없습니다." });
+        }
+        res.json(post);
+    } catch (error) {
+        console.error("일기 불러오기 에러:", error);
+        res.status(500).json({ error: "서버 오류가 발생했습니다." });
+    }
+});
+
 // 새로운 일기 쓰기 (POST) - 파일(사진/영상) 업로드 기능 추가!
 app.post('/api/timeline', upload.single('media'), async (req, res) => {
   try {

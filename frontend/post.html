@@ -71,7 +71,29 @@
                 window.location.href = 'index.html';
                 return;
             }
-            loadPostData(); // 일기 내용 불러오기
+            // ==========================================
+        // 📖 1. 일기 데이터 불러오기 (사진 포함 버전!)
+        // ==========================================
+        async function loadPostData() {
+            try {
+                const response = await fetch(`${BASE_URL}/api/timeline/${postId}`);
+                if (!response.ok) throw new Error("일기를 찾을 수 없습니다.");
+                const post = await response.json();
+
+                const postDetailsDiv = document.getElementById('post-details');
+                postDetailsDiv.innerHTML = `
+                    <div class="post-date">${post.date}</div>
+                    <h1 class="post-title">${post.title}</h1>
+                    <div class="post-desc">${post.desc}</div>
+                    
+                    ${post.img ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${post.img}" style="max-width: 100%; max-height: 500px; border-radius: 8px;"></div>` : ''}
+                    
+                    <div class="post-content">${post.content || "상세 내용이 없습니다."}</div>
+                `;
+            } catch (error) {
+                document.getElementById('post-details').innerHTML = `<p style="color:red; text-align:center;">에러: ${error.message}</p>`;
+            }
+        }
             loadComments(); // 댓글 목록 불러오기
             setupCommentForm(); // 댓글 입력창 준비하기 (로그인 상태 확인)
         });
