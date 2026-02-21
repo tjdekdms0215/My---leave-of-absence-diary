@@ -36,35 +36,33 @@ getTimelineData();
 // ==========================================
 // 🔐 로그인 상태 및 권한(Role) 확인
 // ==========================================
+// script.js 에서 checkLoginStatus 함수 안을 이렇게 고쳐주세요!
 function checkLoginStatus() {
-    // 1. 창고에서 입장권(token)과 등급표(role) 꺼내기
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role'); 
     
     const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const writeBtn = document.getElementById('write-btn');
+    const signupBtn = document.getElementById('signup-btn'); // 🌟 회원가입 버튼 찾아오기
 
     if (token) {
-        // [로그인 상태]
         if (loginBtn) loginBtn.style.display = 'none';
+        if (signupBtn) signupBtn.style.display = 'none'; // 🌟 로그인했으면 회원가입 버튼 숨기기
         if (logoutBtn) logoutBtn.style.display = 'inline-block';
         
-        // 🌟 핵심: 등급표가 'admin'(관리자)일 때만 글쓰기 버튼 보여주기!
         if (role === 'admin') {
             if (writeBtn) writeBtn.style.display = 'inline-block';
         } else {
-            // 일반 회원(user)이면 글쓰기 버튼 숨기기
             if (writeBtn) writeBtn.style.display = 'none';
         }
     } else {
-        // [로그아웃 상태]
         if (loginBtn) loginBtn.style.display = 'inline-block';
+        if (signupBtn) signupBtn.style.display = 'inline-block'; // 🌟 로그아웃 상태면 회원가입 버튼 보여주기
         if (logoutBtn) logoutBtn.style.display = 'none';
         if (writeBtn) writeBtn.style.display = 'none';
     }
 }
-
 // ==========================================
 // 🚪 로그아웃 기능
 // ==========================================
