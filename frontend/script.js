@@ -74,4 +74,4 @@ function logout() {
 }
 
 // 웹페이지가 열릴 때 가장 먼저 'checkLoginStatus' 함수를 실행하라는 뜻!
-document.addEventListener("DOMContentLoaded", checkLoginStatus);
+checkLoginStatus();
