@@ -36,7 +36,7 @@ getTimelineData();
 // ==========================================
 // 🔐 로그인 상태 및 권한(Role) 확인
 // ==========================================
-// script.js 에서 checkLoginStatus 함수 안을 이렇게 고쳐주세요!
+// script.js 에서 checkLoginStatus 함수를 이렇게 덮어씌워주세요!
 function checkLoginStatus() {
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role'); 
@@ -44,25 +44,29 @@ function checkLoginStatus() {
     const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const writeBtn = document.getElementById('write-btn');
-    const signupBtn = document.getElementById('signup-btn'); // 🌟 회원가입 버튼 찾아오기
+    const signupBtn = document.getElementById('signup-btn'); // 🌟 회원가입 버튼
 
     if (token) {
-        if (loginBtn) loginBtn.style.display = 'none';
-        if (signupBtn) signupBtn.style.display = 'none'; // 🌟 로그인했으면 회원가입 버튼 숨기기
-        if (logoutBtn) logoutBtn.style.display = 'inline-block';
+        // 💡 [공통] 로그인 상태라면 등급에 상관없이 무조건 적용!
+        if (loginBtn) loginBtn.style.display = 'none'; // 로그인 버튼 숨기기
+        if (signupBtn) signupBtn.style.display = 'none'; // 회원가입 버튼 숨기기 
+        if (logoutBtn) logoutBtn.style.display = 'inline-block'; // 로그아웃 버튼 보여주기
         
+        // 💡 [등급별] 관리자인지 아닌지에 따라 다르게 적용!
         if (role === 'admin') {
-            if (writeBtn) writeBtn.style.display = 'inline-block';
+            if (writeBtn) writeBtn.style.display = 'inline-block'; // 관리자는 새 일기 버튼 보임
         } else {
-            if (writeBtn) writeBtn.style.display = 'none';
+            if (writeBtn) writeBtn.style.display = 'none'; // 일반 유저는 새 일기 버튼 숨김
         }
     } else {
+        // 💡 [로그아웃 상태]
         if (loginBtn) loginBtn.style.display = 'inline-block';
-        if (signupBtn) signupBtn.style.display = 'inline-block'; // 🌟 로그아웃 상태면 회원가입 버튼 보여주기
+        if (signupBtn) signupBtn.style.display = 'inline-block';
         if (logoutBtn) logoutBtn.style.display = 'none';
         if (writeBtn) writeBtn.style.display = 'none';
     }
 }
+
 // ==========================================
 // 🚪 로그아웃 기능
 // ==========================================
