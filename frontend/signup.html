@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 - 성다은의 휴학일기</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .signup-container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        h2 { color: #333; margin-bottom: 20px; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #333; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        button:hover { background-color: #555; }
+        .back-link { display: block; margin-top: 15px; color: #888; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <div class="signup-container">
+        <h2>🎉 회원가입</h2>
+        
+        <div class="input-group">
+            <label>아이디</label>
+            <input type="text" id="username" placeholder="사용할 아이디를 입력하세요" />
+        </div>
+        <div class="input-group">
+            <label>비밀번호</label>
+            <input type="password" id="password" placeholder="비밀번호를 입력하세요" />
+        </div>
+        
+        <button onclick="signup()">가입하기</button>
+
+        <a href="login.html" class="back-link">이미 계정이 있으신가요? 로그인하기</a>
+        <a href="index.html" class="back-link" style="margin-top: 5px;">메인 화면으로 돌아가기</a>
+    </div>
+
+    <script>
+        async function signup() {
+            const usernameInput = document.getElementById('username').value;
+            const passwordInput = document.getElementById('password').value;
+
+            if (!usernameInput || !passwordInput) {
+                alert("아이디와 비밀번호를 모두 입력해주세요!");
+                return;
+            }
+
+            try {
+                // 다은님의 백엔드 회원가입 API 주소
+                const url = 'https://my-leave-of-absence-diary.onrender.com/api/signup'; 
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: usernameInput, password: passwordInput })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert("회원가입이 완료되었습니다! 이제 로그인해 주세요. 🎉");
+                    window.location.href = 'login.html'; // 가입 성공하면 로그인 화면으로 이동
+                } else {
+                    alert(data.message); // 예: "이미 사용 중인 아이디입니다."
+                }
+            } catch (error) {
+                console.error("회원가입 에러:", error);
+                alert("서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.");
+            }
+        }
+    </script>
+
+</body>
+</html>
