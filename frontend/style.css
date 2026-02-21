@@ -88,3 +88,12 @@ h1 { margin: 10px 0; color: #333; }
 
 /* 카드에 마우스 올리면 포인터 모양으로 */
 .timeline-item { cursor: pointer; }
+
+
+.diary-photo {
+    max-width: 100%;  /* 가로 너비가 부모 상자를 넘지 않게 제한 */
+    height: auto;     /* 가로에 맞춰 세로 비율 자동 조절 */
+    border-radius: 8px; /* 모서리를 부드럽게 */
+    margin-top: 15px; /* 위쪽 간격 */
+    display: block;   /* 사진을 한 줄 차지하게 설정 */
+}

@@ -13,7 +13,7 @@ async function getTimelineData() {
             
             // 🌟 이 부분이 팝업창 대신 새 페이지(post.html)로 넘겨주는 핵심 코드입니다!
             div.onclick = () => {
-                window.location.href = `post.html?id=${item.id}`;
+                window.location.href = `post.html?id=${item._id}`;
             };
 
             const imageHtml = item.img ? `<img src="${item.img}" class="diary-photo" alt="일기 사진">` : '';
@@ -22,7 +22,6 @@ async function getTimelineData() {
                 <span class="date">${item.date}</span>
                 <div class="title" style="font-size: 20px; font-weight: bold; margin-top: 10px;">${item.title}</div>
                 <p class="desc" style="color: #666; margin-top: 8px;">${item.desc}</p>
-                ${imageHtml}
             `;
             list.appendChild(div);
         });
