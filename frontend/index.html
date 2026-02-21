@@ -24,9 +24,13 @@
             </div>
         </header>
 
-        <a href="write.html" style="display: inline-block; padding: 10px 20px; background-color: #333; color: white; text-decoration: none; border-radius: 5px; margin-bottom: 20px;">+ 새 일기 쓰기</a>
-
-        <a href="login.html" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin-bottom: 20px; margin-left: 10px;">🔑 로그인</a>
+        <div id="auth-buttons" style="margin-bottom: 20px;">
+            <a href="write.html" id="write-btn" style="display: none; padding: 10px 20px; background-color: #333; color: white; text-decoration: none; border-radius: 5px;">+ 새 일기 쓰기</a>
+            
+            <a href="login.html" id="login-btn" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin-left: 10px;">🔑 로그인</a>
+            
+            <button id="logout-btn" onclick="logout()" style="display: none; padding: 10px 20px; background-color: #f44336; color: white; border: none; cursor: pointer; border-radius: 5px; margin-left: 10px; font-size: 16px; font-weight: bold;">🚪 로그아웃</button>
+        </div>
         
         <main>
             <h2>📅 휴학 타임라인</h2>
