@@ -7,106 +7,51 @@
     <style>
         body { font-family: 'Arial', sans-serif; background-color: #f4f4f9; padding: 30px; display: flex; justify-content: center; }
         .container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
-        
-        /* 일기 내용 스타일 */
         .post-date { color: #888; font-size: 14px; margin-bottom: 5px; }
         .post-title { font-size: 28px; color: #333; margin-top: 0; margin-bottom: 10px; }
         .post-desc { color: #555; font-style: italic; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
         .post-content { font-size: 16px; line-height: 1.6; color: #444; margin-bottom: 40px; white-space: pre-wrap; }
-        
-        /* 댓글 영역 스타일 */
         .comments-section { background-color: #f9f9f9; padding: 20px; border-radius: 8px; }
-        .comments-section h3 { margin-top: 0; font-size: 18px; color: #333; }
-        
-        /* 개별 댓글 디자인 */
         .comment-item { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #ddd; }
         .comment-author { font-weight: bold; color: #2196F3; margin-bottom: 5px; font-size: 14px; }
-        .comment-date { font-size: 12px; color: #999; margin-left: 10px; font-weight: normal; }
         .comment-text { margin: 0; color: #333; font-size: 15px; }
-
-        /* 댓글 입력창 스타일 */
         .comment-input-area { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
         textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; resize: vertical; }
         button { padding: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        button:hover { background-color: #45a049; }
-        
-        /* 로그인 안내 메시지 */
-        .login-prompt { text-align: center; padding: 20px; background: #e3f2fd; border-radius: 5px; color: #1565c0; font-weight: bold; }
-        .login-prompt a { color: #1976d2; text-decoration: underline; }
-        
         .back-link { display: inline-block; margin-bottom: 20px; color: #666; text-decoration: none; font-weight: bold; }
-        .back-link:hover { color: #333; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <a href="index.html" class="back-link">← 목록으로 돌아가기</a>
-        
         <div id="post-details">
             <p>데이터를 불러오는 중입니다...</p>
         </div>
 
         <div class="comments-section">
             <h3>💬 댓글 (<span id="comment-count">0</span>)</h3>
-            
             <div id="comments-list"></div>
-
             <div id="comment-form-area"></div>
         </div>
     </div>
 
     <script>
-    // 🌟 1. 백엔드 주소 확인 (끝에 '/'가 없는지 꼭 확인하세요!)
-    const BASE_URL = 'https://my-leave-of-absence-diary.onrender.com';
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const postId = urlParams.get('id');
+        const BASE_URL = 'https://my-leave-of-absence-diary.onrender.com';
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('id');
 
-    console.log("📍 현재 게시글 ID:", postId); // 콘솔에서 ID가 잘 찍히는지 확인용
-
-    document.addEventListener("DOMContentLoaded", () => {
-        if (!postId || postId === 'undefined') {
-            console.error("❌ ID가 없거나 undefined입니다!");
-            alert("잘못된 접근입니다!");
-            window.location.href = 'index.html';
-            return;
-        }
-        loadPostData();
-        // loadComments(); // 댓글 기능은 일단 일기부터 불러온 뒤에 확인해요!
-    });
-
-    async function loadPostData() {
-        try {
-            console.log("📡 데이터를 가져오는 중...");
-            const response = await fetch(`${BASE_URL}/api/timeline/${postId}`);
-            
-            if (!response.ok) {
-                console.error("❌ 서버 응답 에러:", response.status);
-                throw new Error("일기를 찾을 수 없습니다.");
+        document.addEventListener("DOMContentLoaded", () => {
+            if (!postId || postId === 'undefined') {
+                alert("잘못된 접근입니다!");
+                window.location.href = 'index.html';
+                return;
             }
+            loadPostData();
+            loadComments();
+            setupCommentForm();
+        });
 
-            const post = await response.json();
-            console.log("✅ 받아온 데이터:", post);
-
-            const postDetailsDiv = document.getElementById('post-details');
-            postDetailsDiv.innerHTML = `
-                <div class="post-date">${post.date}</div>
-                <h1 class="post-title">${post.title}</h1>
-                <div class="post-desc">${post.desc}</div>
-                ${post.img ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${post.img}" style="max-width: 100%; border-radius: 8px;"></div>` : ''}
-                <div class="post-content" style="white-space: pre-wrap;">${post.content || "내용이 없습니다."}</div>
-            `;
-        } catch (error) {
-            console.error("❌ fetch 에러 발생:", error);
-            document.getElementById('post-details').innerHTML = `<p style="color:red;">에러: ${error.message}</p>`;
-        }
-    }
-</script>
-
-        // ==========================================
-        // 📖 1. 일기 데이터 불러오기
-        // ==========================================
         async function loadPostData() {
             try {
                 const response = await fetch(`${BASE_URL}/api/timeline/${postId}`);
@@ -118,109 +63,75 @@
                     <div class="post-date">${post.date}</div>
                     <h1 class="post-title">${post.title}</h1>
                     <div class="post-desc">${post.desc}</div>
-                    <div class="post-content">${post.content || "상세 내용이 없습니다."}</div>
+                    ${post.img ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${post.img}" style="max-width: 100%; border-radius: 8px;"></div>` : ''}
+                    <div class="post-content">${post.content || "내용이 없습니다."}</div>
                 `;
             } catch (error) {
                 document.getElementById('post-details').innerHTML = `<p style="color:red;">에러: ${error.message}</p>`;
             }
         }
 
-        // ==========================================
-        // 💬 2. 댓글 목록 불러오기
-        // ==========================================
         async function loadComments() {
             try {
                 const response = await fetch(`${BASE_URL}/api/comments/${postId}`);
                 const comments = await response.json();
-                
-                const commentsListDiv = document.getElementById('comments-list');
                 document.getElementById('comment-count').innerText = comments.length;
+                const commentsListDiv = document.getElementById('comments-list');
                 
                 if (comments.length === 0) {
-                    commentsListDiv.innerHTML = '<p style="color: #888; text-align: center;">아직 댓글이 없습니다. 첫 번째 댓글을 남겨보세요! ✨</p>';
+                    commentsListDiv.innerHTML = '<p style="color: #888; text-align: center;">아직 댓글이 없습니다.</p>';
                     return;
                 }
 
-                // 댓글들을 하나씩 예쁘게 포장해서 화면에 붙이기
                 commentsListDiv.innerHTML = comments.map(comment => `
                     <div class="comment-item">
-                        <div class="comment-author">
-                            🧑‍💻 ${comment.author} 
-                            <span class="comment-date">${new Date(comment.createdAt).toLocaleString()}</span>
-                        </div>
+                        <div class="comment-author">🧑‍💻 ${comment.author}</div>
                         <p class="comment-text">${comment.content}</p>
                     </div>
                 `).join('');
             } catch (error) {
-                console.error("댓글 불러오기 실패:", error);
+                console.error("댓글 로딩 실패:", error);
             }
         }
 
-        // ==========================================
-        // ✍️ 3. 댓글 입력창 보여주기 (로그인 상태 확인)
-        // ==========================================
         function setupCommentForm() {
             const token = localStorage.getItem('token');
             const formArea = document.getElementById('comment-form-area');
-
             if (token) {
-                // 로그인 했으면: 댓글 쓰는 칸과 버튼을 보여줌!
                 formArea.innerHTML = `
                     <div class="comment-input-area">
-                        <textarea id="new-comment" rows="3" placeholder="다은님의 일기에 따뜻한 댓글을 남겨주세요! 😊"></textarea>
+                        <textarea id="new-comment" rows="3" placeholder="댓글을 입력하세요..."></textarea>
                         <button onclick="submitComment()">댓글 등록</button>
                     </div>
                 `;
             } else {
-                // 로그인 안 했으면: 로그인하라는 안내 메시지를 띄움!
-                formArea.innerHTML = `
-                    <div class="login-prompt">
-                        댓글을 작성하시려면 <a href="login.html">로그인</a>이 필요합니다.
-                    </div>
-                `;
+                formArea.innerHTML = `<p style="text-align:center; font-size:14px; color:#666;">댓글을 쓰려면 로그인이 필요합니다.</p>`;
             }
         }
 
-        // ==========================================
-        // 🚀 4. 작성한 댓글 서버로 보내기 (저장)
-        // ==========================================
         async function submitComment() {
-            const commentText = document.getElementById('new-comment').value;
-            if (!commentText.trim()) {
-                alert("댓글 내용을 입력해주세요!");
-                return;
-            }
-
+            const content = document.getElementById('new-comment').value;
             const token = localStorage.getItem('token');
+            if (!content.trim()) return;
 
             try {
                 const response = await fetch(`${BASE_URL}/api/comments`, {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        // 🌟 핵심! 백엔드의 검사원(authenticateToken)에게 나의 입장권을 보여줍니다!
                         'Authorization': `Bearer ${token}` 
                     },
-                    body: JSON.stringify({
-                        postId: postId,
-                        content: commentText
-                    })
+                    body: JSON.stringify({ postId, content })
                 });
 
                 if (response.ok) {
-                    alert("댓글이 등록되었습니다! 🎉");
-                    document.getElementById('new-comment').value = ''; // 입력창 비우기
-                    loadComments(); // 방금 쓴 댓글이 보이게 댓글 목록 다시 불러오기
-                } else {
-                    const data = await response.json();
-                    alert(data.message || "댓글 등록에 실패했습니다.");
+                    document.getElementById('new-comment').value = '';
+                    loadComments();
                 }
             } catch (error) {
-                console.error("댓글 등록 에러:", error);
-                alert("서버 오류가 발생했습니다.");
+                alert("댓글 등록 실패");
             }
         }
     </script>
-
 </body>
 </html>
