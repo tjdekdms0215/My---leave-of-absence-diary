@@ -11,6 +11,7 @@ const bcrypt = require('bcrypt'); // 비밀번호 암호화 도구
 const User = require('./models/User'); // 아까 만든 유저 설계도
 const jwt = require('jsonwebtoken');
 const Timeline = require('./models/Timeline');
+const Comment = require('./models/Comment');
 
 const app = express();
 app.use(express.json()); // 프론트엔드에서 오는 JSON 데이터를 읽을 수 있게 해주는 마법의 코드
@@ -93,7 +94,50 @@ app.post('/api/login', async (req, res) => {
         res.status(500).json({ message: "서버 오류가 발생했습니다." });
     }
 });
+// ==========================================
+// 💬 특정 일기의 댓글 불러오기 API (누구나 볼 수 있음)
+// ==========================================
+app.get('/api/comments/:postId', async (req, res) => {
+    try {
+        const postId = req.params.postId;
+        // 해당 postId를 가진 댓글만 전부 찾아서, 최신순(createdAt: -1)으로 정렬!
+        const comments = await Comment.find({ postId: postId }).sort({ createdAt: -1 });
+        res.json(comments);
+    } catch (error) {
+        console.error("댓글 불러오기 에러:", error);
+        res.status(500).json({ error: "댓글을 불러오는 데 실패했습니다." });
+    }
+});
 
+// ==========================================
+// ✍️ 새로운 댓글 작성 API (로그인한 회원만 작성 가능!)
+// ==========================================
+// 'authenticateToken' 검사원이 서있기 때문에 입장권(토큰)이 있어야만 통과됩니다.
+app.post('/api/comments', authenticateToken, async (req, res) => {
+    try {
+        // 프론트엔드에서 보낸 일기 번호(postId)와 댓글 내용(content) 받기
+        const { postId, content } = req.body;
+
+        // 토큰을 검사한 'authenticateToken'이 req.user에 유저 정보를 담아줬어요!
+        // 이 유저의 고유 ID로 DB에서 진짜 아이디(username)를 찾아옵니다.
+        const user = await User.findById(req.user.userId);
+
+        // 새로운 댓글 덩어리 만들기
+        const newComment = new Comment({
+            postId: postId,
+            author: user.username, // DB에서 찾은 진짜 아이디 넣기
+            content: content
+        });
+
+        // 금고에 저장!
+        await newComment.save();
+        res.status(201).json({ message: "댓글이 성공적으로 등록되었습니다!", comment: newComment });
+        
+    } catch (error) {
+        console.error("댓글 작성 에러:", error);
+        res.status(500).json({ error: "댓글 작성에 실패했습니다." });
+    }
+});
 // ==========================================
 // 🛡️ 토큰 검사원 (인증 미들웨어)
 // ==========================================
