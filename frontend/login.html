@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 - 성다은의 휴학일기</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        h2 { color: #333; margin-bottom: 20px; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        button:hover { background-color: #45a049; }
+        .back-link { display: block; margin-top: 15px; color: #888; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>🔐 로그인</h2>
+        
+        <div class="input-group">
+            <label>아이디</label>
+            <input type="text" id="username" placeholder="아이디를 입력하세요" />
+        </div>
+        <div class="input-group">
+            <label>비밀번호</label>
+            <input type="password" id="password" placeholder="비밀번호를 입력하세요" />
+        </div>
+        
+        <button onclick="login()">로그인하기</button>
+
+        <a href="index.html" class="back-link">메인 화면으로 돌아가기</a>
+    </div>
+
+    <script>
+        async function login() {
+            // 1. 입력한 아이디와 비밀번호 가져오기
+            const usernameInput = document.getElementById('username').value;
+            const passwordInput = document.getElementById('password').value;
+
+            // 2. 빈칸 검사
+            if (!usernameInput || !passwordInput) {
+                alert("아이디와 비밀번호를 모두 입력해주세요!");
+                return;
+            }
+
+            try {
+                // 3. 다은님의 백엔드 로그인 API 주소!
+                const url = 'https://my-leave-of-absence-diary.onrender.com/api/login'; 
+
+                // 4. 백엔드로 로그인 요청 (택배) 보내기
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: usernameInput, password: passwordInput })
+                });
+
+                // 5. 서버에서 온 답장(성공 메시지, 토큰 등)을 자바스크립트가 읽을 수 있게 변환
+                const data = await response.json();
+
+                if (response.ok) {
+                    // 🌟 핵심! 백엔드가 발급해준 '입장권(token)'을 브라우저의 창고(localStorage)에 보관합니다.
+                    localStorage.setItem('token', data.token);
+                    alert("로그인 성공! 환영합니다 🎉");
+                    window.location.href = 'index.html'; // 메인 화면으로 자동 이동
+                } else {
+                    // 아이디가 없거나 비밀번호가 틀렸을 때 서버가 보낸 에러 메시지 띄우기
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.error("로그인 에러:", error);
+                alert("서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.");
+            }
+        }
+    </script>
+
+</body>
+</html>
