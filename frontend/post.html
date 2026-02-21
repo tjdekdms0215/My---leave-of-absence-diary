@@ -57,46 +57,52 @@
     </div>
 
     <script>
-        // 🌟 다은님의 진짜 렌더 백엔드 주소!
-        const BASE_URL = 'https://my-leave-of-absence-diary.onrender.com';
-        
-        // URL에서 일기 번호(?id=123) 빼오기
-        const urlParams = new URLSearchParams(window.location.search);
-        const postId = urlParams.get('id');
+    // 🌟 1. 백엔드 주소 확인 (끝에 '/'가 없는지 꼭 확인하세요!)
+    const BASE_URL = 'https://my-leave-of-absence-diary.onrender.com';
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const postId = urlParams.get('id');
 
-        // 페이지가 열리면 가장 먼저 실행할 함수들!
-        document.addEventListener("DOMContentLoaded", () => {
-            if (!postId) {
-                alert("잘못된 접근입니다!");
-                window.location.href = 'index.html';
-                return;
-            }
-            // ==========================================
-        // 📖 1. 일기 데이터 불러오기 (사진 포함 버전!)
-        // ==========================================
-        async function loadPostData() {
-            try {
-                const response = await fetch(`${BASE_URL}/api/timeline/${postId}`);
-                if (!response.ok) throw new Error("일기를 찾을 수 없습니다.");
-                const post = await response.json();
+    console.log("📍 현재 게시글 ID:", postId); // 콘솔에서 ID가 잘 찍히는지 확인용
 
-                const postDetailsDiv = document.getElementById('post-details');
-                postDetailsDiv.innerHTML = `
-                    <div class="post-date">${post.date}</div>
-                    <h1 class="post-title">${post.title}</h1>
-                    <div class="post-desc">${post.desc}</div>
-                    
-                    ${post.img ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${post.img}" style="max-width: 100%; max-height: 500px; border-radius: 8px;"></div>` : ''}
-                    
-                    <div class="post-content">${post.content || "상세 내용이 없습니다."}</div>
-                `;
-            } catch (error) {
-                document.getElementById('post-details').innerHTML = `<p style="color:red; text-align:center;">에러: ${error.message}</p>`;
-            }
+    document.addEventListener("DOMContentLoaded", () => {
+        if (!postId || postId === 'undefined') {
+            console.error("❌ ID가 없거나 undefined입니다!");
+            alert("잘못된 접근입니다!");
+            window.location.href = 'index.html';
+            return;
         }
-            loadComments(); // 댓글 목록 불러오기
-            setupCommentForm(); // 댓글 입력창 준비하기 (로그인 상태 확인)
-        });
+        loadPostData();
+        // loadComments(); // 댓글 기능은 일단 일기부터 불러온 뒤에 확인해요!
+    });
+
+    async function loadPostData() {
+        try {
+            console.log("📡 데이터를 가져오는 중...");
+            const response = await fetch(`${BASE_URL}/api/timeline/${postId}`);
+            
+            if (!response.ok) {
+                console.error("❌ 서버 응답 에러:", response.status);
+                throw new Error("일기를 찾을 수 없습니다.");
+            }
+
+            const post = await response.json();
+            console.log("✅ 받아온 데이터:", post);
+
+            const postDetailsDiv = document.getElementById('post-details');
+            postDetailsDiv.innerHTML = `
+                <div class="post-date">${post.date}</div>
+                <h1 class="post-title">${post.title}</h1>
+                <div class="post-desc">${post.desc}</div>
+                ${post.img ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${post.img}" style="max-width: 100%; border-radius: 8px;"></div>` : ''}
+                <div class="post-content" style="white-space: pre-wrap;">${post.content || "내용이 없습니다."}</div>
+            `;
+        } catch (error) {
+            console.error("❌ fetch 에러 발생:", error);
+            document.getElementById('post-details').innerHTML = `<p style="color:red;">에러: ${error.message}</p>`;
+        }
+    }
+</script>
 
         // ==========================================
         // 📖 1. 일기 데이터 불러오기
