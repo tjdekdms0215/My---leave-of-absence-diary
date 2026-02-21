@@ -31,37 +31,36 @@ mongoose.connect(process.env.MONGO_URI)
 // ==========================================
 app.post('/api/signup', async (req, res) => {
     try {
-        // 1. 유저가 보낸 아이디와 비밀번호 꺼내기
         const { username, password } = req.body;
 
-        // 2. 이미 존재하는 아이디인지 금고에서 찾아보기
         const existingUser = await User.findOne({ username });
         if (existingUser) {
             return res.status(400).json({ message: "이미 사용 중인 아이디입니다." });
         }
 
-        // 3. 비밀번호 암호화 (숫자 10은 '10번 꼬아서 복잡하게 만들어라'는 뜻!)
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // 4. 금고에 넣을 새로운 유저 정보 포장하기
+        // 🌟 핵심 로직: 다은님의 전용 아이디를 정해주세요! (예: 'daeun123')
+        // 이 아이디로 가입하면 무조건 'admin(관리자)'이 됩니다.
+        let userRole = 'user'; 
+        if (username === 'tjdekdms') { 
+            userRole = 'admin';
+        }
+
         const newUser = new User({
             username: username,
-            password: hashedPassword
+            password: hashedPassword,
+            role: userRole // 등급 정보도 금고에 같이 저장!
         });
 
-        // 5. 금고에 진짜로 저장!
         await newUser.save();
-
-        // 6. 성공했다고 답변 보내기
         res.status(201).json({ message: "회원가입 성공! 환영합니다 🎉" });
-        console.log(`새로운 유저 가입 완료: ${username}`);
         
     } catch (error) {
         console.error("회원가입 에러:", error);
         res.status(500).json({ message: "서버 오류가 발생했습니다." });
     }
 });
-
 // ==========================================
 // 🌟 로그인 API (POST 요청)
 // ==========================================
@@ -69,28 +68,25 @@ app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        // 1. 금고에서 아이디 찾기
         const user = await User.findOne({ username });
         if (!user) {
             return res.status(400).json({ message: "아이디를 찾을 수 없습니다." });
         }
 
-        // 2. 비밀번호가 맞는지 비교하기 (bcrypt가 외계어 암호를 해독해서 비교해 줍니다!)
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: "비밀번호가 틀렸습니다." });
         }
 
-        // 3. 비밀번호가 맞다면 입장권(JWT) 발급하기! (유효기간: 1시간)
+        // 입장권(JWT)에 유저의 고유 ID와 '등급(role)'을 함께 적어서 발급합니다!
         const token = jwt.sign(
-            { userId: user._id }, 
+            { userId: user._id, role: user.role }, 
             process.env.JWT_SECRET, 
             { expiresIn: '1h' }
         );
 
-        // 4. 유저에게 성공 메시지와 입장권 보내주기
-        res.json({ message: "로그인 성공!", token: token });
-        console.log(`유저 로그인 성공: ${username}`);
+        // 🌟 프론트엔드에 답장할 때 등급(role) 정보도 같이 보내줍니다.
+        res.json({ message: "로그인 성공!", token: token, role: user.role });
 
     } catch (error) {
         console.error("로그인 에러:", error);
