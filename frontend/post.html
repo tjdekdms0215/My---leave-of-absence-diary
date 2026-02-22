@@ -68,8 +68,10 @@
                     
                     // 배열에 있는 주소를 하나씩 꺼내서 태그로 만듭니다.
                     post.images.forEach(url => {
-                        // 만약 동영상(.mp4)이면 <video> 태그를 쓰고, 사진이면 <img> 태그를 씁니다.
-                        if (url.includes('.mp4')) {
+                        // 🌟 .mp4 거나 .mov 일 때 모두 비디오 태그를 쓰도록 합칩니다.
+                        if (url.includes('.mp4') || url.includes('.mov')) {
+                            // 🌟 마법의 코드: 주소에 .mov가 있으면 .mp4로 강제로 바꿔서 요청합니다!
+                            const videoUrl = url.replace('.mov', '.mp4');
                             mediaHtml += `<video src="${url}" controls style="max-width: 100%; border-radius: 8px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;"></video>`;
                         } else {
                             mediaHtml += `<img src="${url}" style="max-width: 100%; border-radius: 8px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;">`;
