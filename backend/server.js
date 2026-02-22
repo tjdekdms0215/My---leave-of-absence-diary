@@ -211,44 +211,51 @@ app.get('/api/timeline/:id', async (req, res) => {
 });
 
 
-
 // ==========================================
-// 🌟 새로운 일기 쓰기 (POST) - 사진 여러 장(최대 10장) 완벽 지원 버전!
+// 🌟 새로운 일기 쓰기 (POST) - 클라우디너리 기절 방지 안전망 추가!
 // ==========================================
-// 🚨 주의: upload.single이 아니라 upload.array('media', 10) 입니다!
-app.post('/api/timeline', upload.array('media', 10), async (req, res) => {
-  try {
-    const { title, date, desc, content } = req.body;
+app.post('/api/timeline', (req, res, next) => {
+    // 1. 배달부(multer)가 클라우디너리에 먼저 사진을 올리도록 시도합니다.
+    const uploadMiddleware = upload.array('media', 10);
     
-    // 🌟 핵심: 여러 장의 사진 주소를 담을 빈 바구니(배열) 준비
-    let imageUrls = [];
-    
-    // 🌟 핵심: 프론트엔드에서 사진들을 보냈다면 (req.files - 복수형!)
-    if (req.files && req.files.length > 0) {
-        // 사진들을 하나씩 꺼내서 그 주소(.path)만 바구니에 차곡차곡 담습니다.
-        imageUrls = req.files.map(file => file.path);
-    }
-
-    // 금고(DB)에 넣을 새로운 덩어리 만들기
-    const newTimeline = new Timeline({
-      title: title,
-      date: date,
-      desc: desc,
-      content: content,
-      images: imageUrls // 바구니(배열) 통째로 금고에 저장!
+    uploadMiddleware(req, res, (err) => {
+        if (err) {
+            // 🚨 여기서 [object Object] 대신 진짜 에러의 속살을 까발립니다!
+            console.error("🚨 [긴급] 클라우디너리(사진 창고) 업로드 에러 발생! 🚨");
+            console.error(err); 
+            return res.status(400).json({ message: "사진 업로드에 실패했습니다. 렌더 로그를 확인하세요!" });
+        }
+        // 에러 없이 사진이 잘 올라갔다면 다음 단계(DB 저장)로 넘어갑니다.
+        next(); 
     });
 
-    await newTimeline.save(); // 금고 문 닫기!
-    
-    res.status(201).json({ message: "일기와 사진이 성공적으로 기록되었습니다!", data: newTimeline});
-    
-  } catch (error) {
-    // 만약 또 기절하면 까만 창(Logs)에 범인 이름을 한국어로 크게 출력하게 만들었습니다!
-    console.error("🚨 [긴급] 사진 저장 중 서버 기절! 원인 파악 🚨");
-    console.error(error);
-    res.status(500).json({ error: "일기 저장에 실패했습니다." });
-  }
+}, async (req, res) => {
+    // 2. 사진이 잘 올라갔으니, 이제 금고(DB)에 주소와 글을 저장합니다.
+    try {
+        const { title, date, desc, content } = req.body;
+        let imageUrls = [];
+        
+        if (req.files && req.files.length > 0) {
+            imageUrls = req.files.map(file => file.path);
+        }
+
+        const newTimeline = new Timeline({
+            title: title,
+            date: date,
+            desc: desc,
+            content: content,
+            images: imageUrls
+        });
+
+        await newTimeline.save();
+        res.status(201).json({ message: "일기와 사진이 성공적으로 기록되었습니다!", data: newTimeline });
+        
+    } catch (error) {
+        console.error("🚨 [긴급] DB 금고 저장 에러 🚨", error);
+        res.status(500).json({ error: "일기 저장에 실패했습니다." });
+    }
 });
+
 // ==========================================
 // 💬 특정 일기의 댓글 불러오기 API (누구나 볼 수 있음)
 // ==========================================
