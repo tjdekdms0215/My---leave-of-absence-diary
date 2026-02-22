@@ -52,6 +52,7 @@
             setupCommentForm();
         });
 
+        // post.html의 loadPostData() 함수를 이것으로 교체!
         async function loadPostData() {
             try {
                 const response = await fetch(`${BASE_URL}/api/timeline/${postId}`);
@@ -59,11 +60,32 @@
                 const post = await response.json();
 
                 const postDetailsDiv = document.getElementById('post-details');
+                
+                // 🌟 추가된 부분: 사진/동영상이 여러 개면 촤라락 그려주는 코드!
+                let mediaHtml = '';
+                if (post.images && post.images.length > 0) {
+                    mediaHtml = '<div style="text-align: center; margin-bottom: 20px;">';
+                    
+                    // 배열에 있는 주소를 하나씩 꺼내서 태그로 만듭니다.
+                    post.images.forEach(url => {
+                        // 만약 동영상(.mp4)이면 <video> 태그를 쓰고, 사진이면 <img> 태그를 씁니다.
+                        if (url.includes('.mp4')) {
+                            mediaHtml += `<video src="${url}" controls style="max-width: 100%; border-radius: 8px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;"></video>`;
+                        } else {
+                            mediaHtml += `<img src="${url}" style="max-width: 100%; border-radius: 8px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;">`;
+                        }
+                    });
+                    
+                    mediaHtml += '</div>';
+                }
+
                 postDetailsDiv.innerHTML = `
                     <div class="post-date">${post.date}</div>
                     <h1 class="post-title">${post.title}</h1>
                     <div class="post-desc">${post.desc}</div>
-                    ${post.img ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${post.img}" style="max-width: 100%; border-radius: 8px;"></div>` : ''}
+                    
+                    ${mediaHtml} 
+                    
                     <div class="post-content">${post.content || "내용이 없습니다."}</div>
                 `;
             } catch (error) {
