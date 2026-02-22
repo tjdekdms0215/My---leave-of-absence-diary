@@ -212,12 +212,16 @@ app.get('/api/timeline/:id', async (req, res) => {
 
 
 // 새로운 일기 쓰기 (POST) - 파일(사진/영상) 업로드 기능 추가!
-app.post('/api/timeline', upload.single('media'), async (req, res) => {
+app.post('/api/timeline', upload.array('media', 10), async (req, res) => {
   try {
     const { title, date, desc, content } = req.body;
     
-    // 🌟 프론트엔드에서 파일(media)을 같이 보냈다면, 클라우디너리가 저장하고 그 주소(URL)를 줍니다!
-    const mediaUrl = req.file ? req.file.path : null; 
+    // 🌟 변경점 2: 여러 개의 파일 URL을 담을 배열 만들기
+    let imageUrls = [];
+    // 만약 첨부된 파일들이 있다면(req.files), 하나씩 꺼내서 그 주소(path)를 배열에 담습니다.
+    if (req.files && req.files.length > 0) {
+        imageUrls = req.files.map(file => file.path);
+    }
 
     // DB 모델 규격에 맞춰 새로운 덩어리 만들기 (미디어 주소도 함께 저장!)
     const newTimeline = new Timeline({
@@ -225,7 +229,8 @@ app.post('/api/timeline', upload.single('media'), async (req, res) => {
       date: date,
       desc: desc,
       content: content,
-      img: mediaUrl // 일기장 DB에 클라우드 링크 주소 저장!
+      // 🌟 변경점 3: 아까 모델에서 바꾼 이름(images)에 주소 배열(imageUrls)을 저장!
+      images: imageUrls
     });
 
     await newTimeline.save();

@@ -19,8 +19,8 @@ const timelineSchema = new mongoose.Schema({
         default: "채워질 내용,," // 🌟 내용을 안 적으면 다은님이 원하신 이 문구가 자동으로 들어갑니다!
     },
     // 🌟 새로 추가된 부분: 클라우디너리에서 받은 사진/동영상 링크를 저장할 공간!
-    img: { 
-        type: String,
+    images: { 
+        type: [String],
         default: null // 사진이나 영상이 없는 일기도 있을 수 있으니까, 기본값은 '비어있음(null)'으로 둡니다.
     }
 });
