@@ -211,34 +211,41 @@ app.get('/api/timeline/:id', async (req, res) => {
 });
 
 
-// 새로운 일기 쓰기 (POST) - 파일(사진/영상) 업로드 기능 추가!
+
+// ==========================================
+// 🌟 새로운 일기 쓰기 (POST) - 사진 여러 장(최대 10장) 완벽 지원 버전!
+// ==========================================
+// 🚨 주의: upload.single이 아니라 upload.array('media', 10) 입니다!
 app.post('/api/timeline', upload.array('media', 10), async (req, res) => {
   try {
     const { title, date, desc, content } = req.body;
     
-    // 🌟 변경점 2: 여러 개의 파일 URL을 담을 배열 만들기
+    // 🌟 핵심: 여러 장의 사진 주소를 담을 빈 바구니(배열) 준비
     let imageUrls = [];
-    // 만약 첨부된 파일들이 있다면(req.files), 하나씩 꺼내서 그 주소(path)를 배열에 담습니다.
+    
+    // 🌟 핵심: 프론트엔드에서 사진들을 보냈다면 (req.files - 복수형!)
     if (req.files && req.files.length > 0) {
+        // 사진들을 하나씩 꺼내서 그 주소(.path)만 바구니에 차곡차곡 담습니다.
         imageUrls = req.files.map(file => file.path);
     }
 
-    // DB 모델 규격에 맞춰 새로운 덩어리 만들기 (미디어 주소도 함께 저장!)
+    // 금고(DB)에 넣을 새로운 덩어리 만들기
     const newTimeline = new Timeline({
       title: title,
       date: date,
       desc: desc,
       content: content,
-      // 🌟 변경점 3: 아까 모델에서 바꾼 이름(images)에 주소 배열(imageUrls)을 저장!
-      images: imageUrls
+      images: imageUrls // 바구니(배열) 통째로 금고에 저장!
     });
 
-    await newTimeline.save();
+    await newTimeline.save(); // 금고 문 닫기!
     
-    res.status(201).json({ message: "일기와 미디어가 성공적으로 기록되었습니다!", data: newTimeline});
+    res.status(201).json({ message: "일기와 사진이 성공적으로 기록되었습니다!", data: newTimeline});
     
   } catch (error) {
-    console.error("저장 중 에러 발생:", error);
+    // 만약 또 기절하면 까만 창(Logs)에 범인 이름을 한국어로 크게 출력하게 만들었습니다!
+    console.error("🚨 [긴급] 사진 저장 중 서버 기절! 원인 파악 🚨");
+    console.error(error);
     res.status(500).json({ error: "일기 저장에 실패했습니다." });
   }
 });
@@ -281,9 +288,14 @@ app.post('/api/comments', authenticateToken, async (req, res) => {
         await newComment.save();
         res.status(201).json({ message: "댓글이 성공적으로 등록되었습니다!", comment: newComment });
         
+    // server.js의 일기 저장 API 맨 아랫부분 수정
     } catch (error) {
-        console.error("댓글 작성 에러:", error);
-        res.status(500).json({ error: "댓글 작성에 실패했습니다." });
+        // 에러의 정체를 낱낱이 파헤쳐서 로그에 보여주는 마법의 코드!
+        console.error("🚨 서버 기절 원인 파악 중 🚨");
+        console.dir(error); // [object Object] 대신 에러의 속살을 다 보여줍니다.
+        console.error("에러 메시지:", error.message);
+        
+        res.status(500).json({ error: "일기 저장에 실패했습니다." });
     }
 });
 
