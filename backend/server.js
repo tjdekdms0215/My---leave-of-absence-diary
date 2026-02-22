@@ -45,7 +45,7 @@ const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: 'diary_media', // 클라우디너리에 'diary_media'라는 폴더가 생기고 저장됩니다!
-        allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'mp4','heic', 'webp'], // 사진과 동영상 모두 허용!
+        allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'mp4','heic', 'webp', 'mov'], // 사진과 동영상 모두 허용!
         resource_type: 'auto' // 파일 종류(사진/영상)를 자동으로 파악하게 합니다.
     }
 });
