@@ -19,6 +19,24 @@
         textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; resize: vertical; }
         button { padding: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
         .back-link { display: inline-block; margin-bottom: 20px; color: #666; text-decoration: none; font-weight: bold; }
+        /* 🌟 1. 사진: 화면 밖으로 절대 못 나가게 강력 방어! */
+        .post-content img {
+            max-width: 100% !important; /* 아무리 커도 화면 100%까지만! */
+            height: auto !important;
+            border-radius: 8px !important;
+            display: block !important;
+            margin: 15px auto !important;
+        }
+
+        /* 🌟 2. 동영상: 콩알만 한 크기 방지, 가로로 시원하게 꽉 채우기! */
+        .post-content video {
+            max-width: 100% !important;
+            width: 100% !important; /* 동영상은 가로 100%를 무조건 채우도록 강제! */
+            height: auto !important;
+            border-radius: 8px !important;
+            display: block !important;
+            margin: 15px auto !important;
+        }
     </style>
 </head>
 <body>
