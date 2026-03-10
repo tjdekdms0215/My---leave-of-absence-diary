@@ -35,7 +35,6 @@ getTimelineData();
 // ==========================================
 // 🔐 로그인 상태 및 권한(Role) 확인
 // ==========================================
-// script.js 에서 checkLoginStatus 함수를 이렇게 덮어씌워주세요!
 function checkLoginStatus() {
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role'); 
@@ -43,19 +42,19 @@ function checkLoginStatus() {
     const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const writeBtn = document.getElementById('write-btn');
-    const signupBtn = document.getElementById('signup-btn'); // 🌟 회원가입 버튼
+    const signupBtn = document.getElementById('signup-btn');
 
     if (token) {
-        // 💡 [공통] 로그인 상태라면 등급에 상관없이 무조건 적용!
-        if (loginBtn) loginBtn.style.display = 'none'; // 로그인 버튼 숨기기
-        if (signupBtn) signupBtn.style.display = 'none'; // 회원가입 버튼 숨기기 
-        if (logoutBtn) logoutBtn.style.display = 'inline-block'; // 로그아웃 버튼 보여주기
+        // 💡 [공통] 로그인 상태라면 무조건 적용!
+        if (loginBtn) loginBtn.style.display = 'none'; 
+        if (signupBtn) signupBtn.style.display = 'none';  
+        if (logoutBtn) logoutBtn.style.display = 'inline-block'; 
         
-        // 💡 [등급별] 관리자인지 아닌지에 따라 다르게 적용!
-        if (role === 'admin') {
-            if (writeBtn) writeBtn.style.display = 'inline-block'; // 관리자는 새 일기 버튼 보임
+        // 🌟 [핵심 수정] 관리자('admin') 이거나 심사위원('guest')일 때 모두 버튼을 보여줍니다!
+        if (role === 'admin' || role === 'guest') {
+            if (writeBtn) writeBtn.style.display = 'inline-block'; 
         } else {
-            if (writeBtn) writeBtn.style.display = 'none'; // 일반 유저는 새 일기 버튼 숨김
+            if (writeBtn) writeBtn.style.display = 'none'; // 그 외 일반 유저는 숨김
         }
     } else {
         // 💡 [로그아웃 상태]
