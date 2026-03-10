@@ -257,6 +257,27 @@ app.post('/api/timeline', (req, res, next) => {
 });
 
 // ==========================================
+// 📸 2단계: 에디터 전용 '사진 1장' 업로드 고속도로 (POST)
+// ==========================================
+// 주의: 여기서는 여러 장이 아니라 에디터에서 올린 '딱 1장'만 받습니다.
+app.post('/api/upload/image', upload.single('image'), (req, res) => {
+    try {
+        // 1. 배달부(multer)가 사진을 못 받았을 때
+        if (!req.file) {
+            return res.status(400).json({ message: "업로드된 파일이 없습니다." });
+        }
+        
+        // 2. 클라우디너리에 잘 올라갔다면, 그 사진의 주소(path)를 프론트엔드에 돌려줍니다!
+        console.log("✅ 에디터 사진 업로드 성공! 주소:", req.file.path);
+        res.status(200).json({ url: req.file.path });
+        
+    } catch (error) {
+        console.error("🚨 에디터 이미지 업로드 에러:", error);
+        res.status(500).json({ error: "이미지 업로드에 실패했습니다." });
+    }
+});
+
+// ==========================================
 // 💬 특정 일기의 댓글 불러오기 API (누구나 볼 수 있음)
 // ==========================================
 app.get('/api/comments/:postId', async (req, res) => {
