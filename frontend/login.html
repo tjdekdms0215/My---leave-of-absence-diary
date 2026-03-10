@@ -36,6 +36,25 @@
     </div>
 
     <script>
+        // login.html의 로그인 실행 함수 맨 위쪽에 추가!
+
+// 사용자가 입력한 아이디와 비밀번호 (변수 이름은 다은님 코드에 맞게 수정해 주세요!)
+const inputId = document.getElementById('id').value; // 아이디 입력칸의 id
+const inputPw = document.getElementById('password').value; // 비밀번호 입력칸의 id
+
+// 🌟 게스트 계정 가로채기 (비밀 통로)
+if (inputId === 'guest' && inputPw === '1234') {
+    localStorage.setItem('token', 'guest_dummy_token'); // 가짜 통행증 발급
+    localStorage.setItem('role', 'guest'); // 🌟 핵심: 게스트 꼬리표 달기!
+    
+    alert("👨‍💻 심사위원(게스트) 계정으로 로그인되었습니다! 환영합니다.");
+    window.location.href = 'index.html';
+    return; // 진짜 서버 로그인은 안 하도록 여기서 함수 종료!
+}
+
+// (이 아래부터는 원래 있던 진짜 다은님 계정 로그인 코드...)
+// 🌟 주의: 원래 로그인 성공하는 부분(response.ok 안쪽)에는 아래 한 줄을 꼭 추가해 주세요!
+// localStorage.setItem('role', 'admin'); // 다은님이 로그인할 땐 'admin' 꼬리표 달기
         async function login() {
             // 1. 입력한 아이디와 비밀번호 가져오기
             const usernameInput = document.getElementById('username').value;
@@ -66,7 +85,8 @@
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('role', data.role);//백엔드가 보내준 등급(role)도 창고에 저장합니다.
                     alert("로그인 성공! 환영합니다 🎉");
-                    window.location.href = 'index.html'; // 메인 화면으로 자동 이동
+                    window.location.href = 'index.html'; 
+                    localStorage.setItem('role', 'admin');// 메인 화면으로 자동 이동
                 } else {
                     // 아이디가 없거나 비밀번호가 틀렸을 때 서버가 보낸 에러 메시지 띄우기
                     alert(data.message);
