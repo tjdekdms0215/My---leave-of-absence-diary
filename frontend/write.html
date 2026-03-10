@@ -1,6 +1,41 @@
-<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<body>
+    <div class="write-container">
+        <h2>✏️ 새 일기 쓰기</h2>
+        
+        <div class="form-group">
+            <label>날짜</label>
+            <input type="date" id="date">
+        </div>
+        
+        <div class="form-group">
+            <label>제목</label>
+            <input type="text" id="title" placeholder="일기 제목을 입력하세요">
+        </div>
+        
+        <div class="form-group">
+            <label>한 줄 요약 (목록에 보여요!)</label>
+            <input type="text" id="desc" placeholder="오늘 하루를 한 줄로 요약한다면?">
+        </div>
+        
+        <div class="form-group">
+            <label>상세 내용</label>
+            <div id="editor-container"></div> 
+        </div>
+
+        <div class="form-group">
+            <label>갤러리 사진/동영상 첨부 (최대 10장)</label>
+            <input type="file" id="media" multiple accept="image/*, video/*">
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+            <a href="index.html" class="back-link">← 취소하고 돌아가기</a>
+            <button class="save-btn" onclick="savePost()">저장하기</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
-        // 1. Quill 에디터 설정 (사진 버튼을 가로채는 'handlers' 추가!)
+        // 1. 에디터 그리기 시작!
         var quill = new Quill('#editor-container', {
             theme: 'snow',
             placeholder: '오늘 어떤 일이 있었나요? 사진과 함께 자세한 이야기를 들려주세요!',
@@ -16,29 +51,25 @@
                         ['clean']
                     ],
                     handlers: {
-                        // 🌟 에디터의 '이미지' 버튼을 누르면 우리가 만든 imageHandler가 실행됩니다!
                         image: imageHandler
                     }
                 }
             }
         });
 
-        // 2. 📸 전담 사진기사 함수: 사진을 고속도로(API)로 몰래 보내고 주소를 받아옴
+        // 2. 에디터 전용 사진기사 함수
         function imageHandler() {
-            // 가상의 파일 선택 창을 만듭니다.
             const input = document.createElement('input');
             input.setAttribute('type', 'file');
             input.setAttribute('accept', 'image/*');
             input.click();
 
-            // 파일이 선택되면 실행됨
             input.onchange = async () => {
                 const file = input.files[0];
                 const formData = new FormData();
-                formData.append('image', file); // 'image'라는 이름으로 담기 (server.js와 일치해야 함)
+                formData.append('image', file); 
 
                 try {
-                    // 아까 뚫어놓은 고속도로로 발사!
                     const response = await fetch('https://my-leave-of-absence-diary.onrender.com/api/upload/image', {
                         method: 'POST',
                         body: formData
@@ -46,9 +77,7 @@
 
                     if (response.ok) {
                         const data = await response.json();
-                        const url = data.url; // 클라우디너리가 준 진짜 주소!
-                        
-                        // 현재 에디터에서 커서가 있는 위치를 찾아서, 그 자리에 사진 꽂아 넣기
+                        const url = data.url; 
                         const range = quill.getSelection();
                         quill.insertEmbed(range.index, 'image', url);
                     } else {
@@ -60,20 +89,19 @@
             };
         }
 
-        // 3. 💾 최종 일기 저장 함수
+        // 3. 최종 저장 함수 (게스트 방어 코드 포함!)
         async function savePost() {
+            // 🛡️ 심사위원(게스트) 차단기!
             if (localStorage.getItem('role') === 'guest') {
                 alert("✨ 심사위원용 테스트 계정입니다! 에디터 체험은 가능하지만, 실제 데이터베이스에는 저장되지 않습니다. 멋진 평가 부탁드립니다! 🙇‍♀️");
-                window.location.href = 'index.html'; // 쿨하게 목록으로 돌려보내기
-                return; // 백엔드로 데이터 안 보내고 여기서 끝!
+                window.location.href = 'index.html'; 
+                return; 
             }
+
             const date = document.getElementById('date').value;
             const title = document.getElementById('title').value;
             const desc = document.getElementById('desc').value;
-            
-            // 🌟 핵심 변경: 밋밋한 텍스트가 아니라, 에디터가 만든 '그림 포함 HTML'을 통째로 가져옵니다!
             const content = quill.root.innerHTML; 
-            
             const mediaFiles = document.getElementById('media').files;
 
             if (!date || !title || !desc) {
@@ -85,7 +113,7 @@
             formData.append('date', date);
             formData.append('title', title);
             formData.append('desc', desc);
-            formData.append('content', content); // 🌟 에디터 내용 담기
+            formData.append('content', content);
             
             for (let i = 0; i < mediaFiles.length; i++) {
                 formData.append('media', mediaFiles[i]);
@@ -121,3 +149,4 @@
             }
         }
     </script>
+</body>
