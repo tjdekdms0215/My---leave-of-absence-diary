@@ -97,3 +97,13 @@ h1 { margin: 10px 0; color: #333; }
     margin-top: 15px; /* 위쪽 간격 */
     display: block;   /* 사진을 한 줄 차지하게 설정 */
 }
+
+/* 🌟 에디터 및 본문 안의 사진/동영상이 화면을 뚫고 나가지 않게 꽉 잡아주기 */
+.ql-editor img, .ql-editor video, 
+.post-content img, .post-content video {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    display: block;
+    margin: 15px auto; /* 가운데 정렬 */
+}
